@@ -6,9 +6,10 @@ WordWatch2 is a web application developed using Node.js and Express.js, with the
 
 Check out the live demo at [www.wordwatch.azurewebsites.net](https://www.wordwatch.azurewebsites.net/)
 
-## Features
+## Current Features
 
 - **Transcription:** Current functionality includes automatic audio transcription from YouTube videos.
+## Upcoming Features
 - **Improved Security:** Enhanced security measures will be implemented to protect user data and API credentials.
 - **Keyword Extraction:** Upcoming feature for extracting keywords from the transcribed content.
 - **Sentiment Analysis:** Analyzing the sentiment of the transcribed text.
