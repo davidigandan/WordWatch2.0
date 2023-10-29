@@ -1,0 +1,27 @@
+<h2 class="text-center">Enter a URL</h2>
+
+<div class="top-container">
+    <form action="/convert-mp3" method="POST" id="form">
+        <label for="url" class="visually-hidden">Youtube Video URL:</label>
+        <input class="form-control mb-2" id="url" name="url" placeholder="Enter YouTube URL">
+        <div class="d-flex justify-content-center align-items-center">
+            <button class="btn btn-primary btn-lg">Convert</button>
+        </div>
+    </form>
+</div>
+
+ <div class="bottom-container">
+    <% if(typeof success != "undefined" && success) { %>
+        <div class="success">
+            <p><%= song_title %></p>
+            <script>console.log("<%= song_link %>");</script>
+            <a href="<%= song_link %>" download class="btn btn-primary">Download</a>
+        </div>
+    <% } else if(typeof success != "undefined" && !success) { %>
+        <div class="errors">
+            <p> <%= message %></p>
+        </div>
+    <% } %>
+</div>
+
+
