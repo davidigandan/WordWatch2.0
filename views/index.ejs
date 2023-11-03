@@ -22,6 +22,15 @@
             <p> <%= message %></p>
         </div>
     <% } %>
+
+    <form action="/transcribe" method="post">
+        <label for="audioFileName">MP3 File Name:</label>
+        <input type="text" id="audioFileName" name="audioFileName" value="<%= lastDownload %>" required>
+        <button type="submit">Transcribe</button>
+      </form>
+      
+      <!-- Display the transcript here -->
+      <div id="transcript"></div>
 </div>
 
 
