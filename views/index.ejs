@@ -5,7 +5,7 @@
         <label for="url" class="visually-hidden">Youtube Video URL:</label>
         <input class="form-control mb-2" id="url" name="url" placeholder="Enter YouTube URL">
         <div class="d-flex justify-content-center align-items-center">
-            <button onclick="showButtonAfterDelay();" class="btn btn-lg btn-outline-primary mb-3">Convert</button>
+            <button  class="btn btn-lg btn-outline-primary mb-3">Convert</button>
         </div>
     </form>
     <div class="d-flex justify-content-center align-items-center">
@@ -30,11 +30,8 @@
  </div>
 
 <script>
-    console.log("JavaScript scripts are being loaded");
-
     let returning = <%= returning %>
     if (returning === true) {
-
         console.log('evaluated to true');
         document.getElementById('transcription-centre').style.display = 'block';
     }

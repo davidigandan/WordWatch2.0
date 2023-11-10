@@ -40,7 +40,25 @@ router.post("/convert-mp3", async (req, res) => {
 
 // Go to Transcription Centre
 router.get('/transcription-centre', (req, res) => {
-  res.render('transcription-centre', {});
+  const downloadsFolderPath = "./downloads";
+  function getFilesFromDirectory() {
+    try {
+      const files = fs.readdirSync(downloadsFolderPath);
+      const fileObjects = files.map((file) => {
+        return {
+          name: file,
+          path: path.join(downloadsFolderPath, file),
+        };
+      });
+
+      return fileObjects;
+    } catch (error) {
+      console.error("Error reading files from the downloads folder: ", error);
+      return[];
+    }
+  }
+  let files = getFilesFromDirectory();
+  res.render('transcription-centre', { files });
 });
 
 // Transcribe the video

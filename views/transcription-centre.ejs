@@ -1,0 +1,15 @@
+<div>
+    <h2 class="text-center">Transcription Centre</h2>
+</div>
+
+<div class="top-container">
+    <ul>
+        <% files.forEach(file => { %>
+            <li>
+                <span><%= file.name %></span>
+                <a href="/doSomething1/<%= file.id %>">DoSomething1</a>
+                <a href="/doSomething2/<%= file.id %>">DoSomething2</a>
+            </li>
+        <% }); %>
+    </ul>
+</div>
