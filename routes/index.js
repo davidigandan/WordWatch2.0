@@ -1,6 +1,6 @@
 var express = require('express');
-var router = express.Router(); 
-const youtubedl = require('youtube-dl-exec')
+var router = express.Router();
+const youtubedl = require('youtube-dl-exec');
 const request = require('request');
 const app = express()
 const path = require('path');
@@ -13,10 +13,12 @@ dotenv.config();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  let returning = false;
+  res.render('index', { returning });
 });
 
-// Convert vido url to mp3
+
+// Convert video url to mp3
 router.post("/convert-mp3", async (req, res) => {
 
   const videoUrl = req.body.url;
@@ -27,19 +29,33 @@ router.post("/convert-mp3", async (req, res) => {
         extractAudio: true,
         audioFormat: 'mp3',})
   .then(output => {
-    console.log('Video downloaded:', output);
-    return res.render("index", {});
+    console.log('Video downloaded:');
+    let returning = "true";
+    return res.render("index", { returning });
   })
   .catch(error => {
     console.error('Error downloading video:', error);
-  });
-})
+   });
+});
+
+// Go to Transcription Centre
+router.get('/transcription-centre', (req, res) => {
+  res.render('transcription-centre', {});
+});
 
 // Transcribe the video
-const audioFileName = req.query.audioFileName;
+router.post('/transcribe', (req,res) => {
+  let audioFileName = req.query.audioFileName;
 
-app.post('/transcribe', (req, res) => {
-  const audioFilePath = path.join(__dirname, 'downloads', audioFileName );
+  if(!audioFileName) {
+    return res.status(400).json({ error: 'Missing audioFileName parameter.' });
+  }
+
+  let audioFilePath = path.join(__dirname, 'audio-folder', audioFileName);
+
+  if (!fs.existsSync(audioFilePath)) {
+    return res.status(404).json({ error: 'File not found.' });
+  }
 
   const audioFile = fs.createReadStream(audioFilePath);
 
@@ -58,9 +74,12 @@ app.post('/transcribe', (req, res) => {
 
   request(requestOptions, (error, response, body) => {
     if (error) {
-      res.status(500).send('Error trnascribing audio.');
+      res.status(500).json({ error: 'Error transcribing audio.' });
+    } else if (response.statusCode === 200) {
+      const transcript = JSON.parse(body);
+      res.status(200).json({ transcript });
     } else {
-      res.status(response.statusCode).send(body);
+      res.status(response.statusCode).json({ error : 'Transcription failed.' });
     }
   });
 });
