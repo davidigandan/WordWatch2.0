@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 const youtubedl = require('youtube-dl-exec');
 const request = require('request');
-const app = express()
 const path = require('path');
 const fs = require('fs');
+const fsasync = require('fs').promises;
 const dotenv = require('dotenv');
+const axios = require('axios');
+const sdk = require("microsoft-cognitiveservices-speech-sdk");
 
 dotenv.config();
 
@@ -16,8 +18,6 @@ router.get('/', function(req, res, next) {
   let returning = false;
   res.render('index', { returning });
 });
-
-
 // Convert video url to mp3
 router.post("/convert-mp3", async (req, res) => {
 
@@ -37,7 +37,6 @@ router.post("/convert-mp3", async (req, res) => {
     console.error('Error downloading video:', error);
    });
 });
-
 // Go to Transcription Centre
 router.get('/transcription-centre', (req, res) => {
   const downloadsFolderPath = "./downloads";
@@ -60,47 +59,56 @@ router.get('/transcription-centre', (req, res) => {
   let files = getFilesFromDirectory();
   res.render('transcription-centre', { files });
 });
+// Transcribe the video consists of a get request, which calls a function. Within this function is an axios post request that sends the data to Azure CS
+router.get('/transcribe/:filename', async (req, res) => {
+  let fileName = req.params.filename;
+  let audioFile = `downloads/${fileName}`;
 
-// Transcribe the video
-router.post('/transcribe', (req,res) => {
-  let audioFileName = req.query.audioFileName;
+  // Azure Cognitive Services API Configurations
+  const speechApiEndpoint = process.env.SPEECH_ENDPOINT;
+  const speechApiKey = process.env.SPEECH_KEY;
+  const speechRegion = process.env.SPEECH_REGION;
+  const speechConfig = sdk.SpeechConfig.fromSubscription(speechApiKey, speechRegion);
+  const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
 
-  if(!audioFileName) {
-    return res.status(400).json({ error: 'Missing audioFileName parameter.' });
-  }
+  const speechRecogniser = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
-  let audioFilePath = path.join(__dirname, 'audio-folder', audioFileName);
+  let transcriptions =[];
 
-  if (!fs.existsSync(audioFilePath)) {
-    return res.status(404).json({ error: 'File not found.' });
-  }
-
-  const audioFile = fs.createReadStream(audioFilePath);
-
-  const endpoint = process.env.AZURE_SPEECH_ENDPOINT;
-  const apiKey = process.env.AZURE_SPEECH_KEY;
-
-  const requestOptions = {
-    url: `${endpoint}/speech/recognition/v3.0/transcriptions?language=en-US&profanity=Raw`,
-    method: 'POST',
-    headers: {
-      'Ocp-Apim-Subscription-Key': apiKey,
-      'Content-Type': 'audio/mpeg',
-    },
-    body: audioFile,
-  };
-
-  request(requestOptions, (error, response, body) => {
-    if (error) {
-      res.status(500).json({ error: 'Error transcribing audio.' });
-    } else if (response.statusCode === 200) {
-      const transcript = JSON.parse(body);
-      res.status(200).json({ transcript });
-    } else {
-      res.status(response.statusCode).json({ error : 'Transcription failed.' });
+  function continuousRecognitionHandler(evt) {
+    if (evt.result.reason === sdk.ResultReason.RecognizedSpeech) {
+      transcriptions.push(evt.result.text);
     }
-  });
-});
+  }
 
+  // Begin recognition
+  speechRecogniser.recognized = continuousRecognitionHandler;
+  speechRecogniser.startContinuousRecognitionAsync();
+
+  // Wait for recognition to complete
+  const timeoutSeconds = 60;
+  const timeoutExpiration = Date.now() + timeoutSeconds * 1000;
+
+  function sleep(ms) {
+    return new Promise (resolve => setTimeout(resolve, ms));
+  }
+
+  await (async function () {
+    try {
+      while (Date.now() < timeoutExpiration) {
+        await sleep(1000); // Adjust the sleep duration as needed
+      }
+    } finally {
+      // Stop continuous recognition
+      await speechRecogniser.stopContinuousRecognitionAsync();
+
+      // Combine transcriptions into a single string
+      const transcription = transcriptions.join(' ');
+
+      // Respond with the transcription
+      res.send(`Transcription: ${transcription}`);
+    }
+  })();
+});
 
 module.exports = router;

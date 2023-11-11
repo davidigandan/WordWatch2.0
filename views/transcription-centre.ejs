@@ -7,8 +7,8 @@
         <% files.forEach(file => { %>
             <li>
                 <span><%= file.name %></span>
-                <a href="/doSomething1/<%= file.id %>">DoSomething1</a>
-                <a href="/doSomething2/<%= file.id %>">DoSomething2</a>
+                <a href="/transcribe/<%= file.name %>">Transcribe</a>
+                <a href="/delete/<%= file.name %>">Delete</a>
             </li>
         <% }); %>
     </ul>

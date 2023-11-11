@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "applicationinsights-native-metrics": "^0.0.10",
+    "axios": "^1.6.1",
     "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "~1.4.4",
@@ -21,7 +22,7 @@
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
-    "microsoft-cognitiveservices-speech-sdk": "^1.32.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.33.1",
     "mongoose": "^7.6.3",
     "morgan": "~1.9.1",
     "node-fetch": "^2.7.0",
