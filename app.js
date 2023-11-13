@@ -1,14 +1,49 @@
-// import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const fetch = require("node-fetch");
 const expressLayouts = require('express-ejs-layouts');
 require("dotenv").config();
-const ffmpeg = require('fluent-ffmpeg');
+const fs = require('fs');
 
+// Note: The Azure Cognitive Services SDK is written in ECMAScript. This webapp is written in Commons JS, hence, we'll use a dynamic import to handle the SDK, and it's associated logic.
+import("microsoft-cognitiveservices-speech-sdk").then(
+    (sdk) => {
+      const speechConfig = sdk.SpeechConfig.fromSubscription(process.env.SPEECH_KEY, process.env.SPEECH_REGION);
+      speechConfig.speechRecognitionLanguage = "en-US";
+
+      function fromFile(fileName) {
+        let audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(fileName));
+        let speechRecogniser = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+
+        speechRecogniser.recognizeOnceAsync(result => {
+          switch (result.reason) {
+            case sdk.ResultReason.RecognizedSpeech:
+              console.log(`RECOGNISED: Text=${result.text}`);
+              break;
+            case sdk.ResultReason.NoMatch:
+              console.log("NOMATCH: Speech could not be recongised.");
+              break;
+            case sdk.ResultReason.Canceled:
+              const cancellation = sdk.CancellationDetails.fromResult(result);
+              console.log(`CANCELED: Reason=${cancellation.reason}`);
+
+              if (cancellation.reason === sdk.CancellationReason.Error) {
+                console.log(`CANCELED: ErrorCode=${cancellation.ErrorCode}`);
+                console.log(`CANCELED: ErrorDetails=${cancellation.errorDetails}`)
+                console.log("CANCELED: Did you set up the speech resource key and region values?");
+              }
+              break;
+          }
+          speechRecogniser.close();
+        });
+      }
+
+      fromFile();
+    }).catch((error) => {
+  console.log("Failed to import Microsoft Speech SDK", error);
+});
 
 
 // Initialise express app using the variable app
@@ -18,16 +53,13 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-const http = require('http');
-const https = require('https');
-
 // Middleware
 
 // Standard middleware
 app.use(expressLayouts);
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: true}))
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -53,30 +85,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-
-app.use(express.urlencoded({
-  extended: true
-}))
-
 // Declare port number
-const PORT =  4000;
-
+const PORT =  process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 })
-
-// Middleware for webhook to mp3 conversion
-app.use((req,res,next) => {
-  const ffmpegPath = '/usr/bin/ffmpeg'; // Update with your actual path
-  const ffprobePath = '/usr/bin/ffprobe'; // Update with your actual path
-
-  const ffmpeg = require('fluent-ffmpeg');
-  ffmpeg.setFfmpegPath(ffmpegPath);
-  ffmpeg.setFfprobePath(ffprobePath);
-  next();
-
-})
-
 
 
 module.exports = app;

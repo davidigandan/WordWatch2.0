@@ -7,9 +7,30 @@
         <% files.forEach(file => { %>
             <li>
                 <span><%= file.name %></span>
-                <a href="/transcribe/<%= file.name %>">Transcribe</a>
-                <a href="/delete/<%= file.name %>">Delete</a>
+                <button class="transcribeButton" data-file="<%= file.name %>">Transcribe</button>
+                <button class="delete" data-file="<%= file.name %>">Delete</button>
+
             </li>
         <% }); %>
     </ul>
 </div>
+
+<script>
+    document.querySelectorAll('.transcribeButton').forEach(button => {
+        button.addEventListener('click', function () {
+            // Get the file name from the button
+            let fileName = this.getAttribute('data-file');
+            // Execute the fromFile function
+            fromFile(fileName);
+        });
+    });
+
+    // document.querySelectorAll('.deleteButton').forEach(button => {
+    //     button.addEventListener('click', function () {
+    //         // Get the file name from the button
+    //         let fileName = this.getAttribute('data-file');
+    //         // Execute the delete function
+    //         delteFile(fileName);
+    //     })
+    // })
+</script>
