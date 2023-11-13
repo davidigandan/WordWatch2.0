@@ -7,7 +7,7 @@ const fs = require('fs');
 const fsasync = require('fs').promises;
 const dotenv = require('dotenv');
 const axios = require('axios');
-const sdk = require("microsoft-cognitiveservices-speech-sdk");
+const { setupFfmpegPaths } = require('../Middleware/middleware');
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ router.get('/', function(req, res, next) {
   res.render('index', { returning });
 });
 // Convert video url to mp3
-router.post("/convert-mp3", async (req, res) => {
+router.post("/convert-mp3", setupFfmpegPaths, async (req, res) => {
 
   const videoUrl = req.body.url;
 

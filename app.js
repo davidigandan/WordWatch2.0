@@ -1,42 +1,29 @@
-
+// import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const fetch = require("node-fetch");
-require("dotenv").config();
 const expressLayouts = require('express-ejs-layouts');
+require("dotenv").config();
 const ffmpeg = require('fluent-ffmpeg');
 
 
-var indexRouter = require('./routes/index');
 
-const PORT =  4000;
-var app = express();
+// Initialise express app using the variable app
+const app = express();
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 const http = require('http');
 const https = require('https');
 
-app.use((req,res,next) => {
-  const ffmpegPath = '/usr/bin/ffmpeg'; // Update with your actual path
-  const ffprobePath = '/usr/bin/ffprobe'; // Update with your actual path
+// Middleware
 
-  const ffmpeg = require('fluent-ffmpeg');
-  ffmpeg.setFfmpegPath(ffmpegPath);
-  ffmpeg.setFfprobePath(ffprobePath);
-  next();
-
-})
-
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-})
-// view engine setup
-
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
+// Standard middleware
 app.use(expressLayouts);
 app.use(logger('dev'));
 app.use(express.json());
@@ -44,15 +31,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+// Routes are located at  index.js
+const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
 
-app.use(express.urlencoded({
-  extended: true
-}))
-
-
-
-// catch 404 and forward to error handler
+// Error handling Middleware
+// Catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
@@ -67,5 +52,31 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
+app.use(express.urlencoded({
+  extended: true
+}))
+
+// Declare port number
+const PORT =  4000;
+
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+})
+
+// Middleware for webhook to mp3 conversion
+app.use((req,res,next) => {
+  const ffmpegPath = '/usr/bin/ffmpeg'; // Update with your actual path
+  const ffprobePath = '/usr/bin/ffprobe'; // Update with your actual path
+
+  const ffmpeg = require('fluent-ffmpeg');
+  ffmpeg.setFfmpegPath(ffmpegPath);
+  ffmpeg.setFfprobePath(ffprobePath);
+  next();
+
+})
+
+
 
 module.exports = app;
