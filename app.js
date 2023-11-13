@@ -1,9 +1,9 @@
 // import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const fetch = require("node-fetch");
 const expressLayouts = require('express-ejs-layouts');
 require("dotenv").config();
@@ -32,9 +32,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// Routes are located at  index.js
-const indexRouter = require('./routes/index');
-app.use('/', indexRouter);
+// Routes are located at  userRoutes.js
+const userRoutes = require('./routes/userRoutes');
+app.use('/', userRoutes);
 
 // Error handling Middleware
 // Catch 404 and forward to error handler
